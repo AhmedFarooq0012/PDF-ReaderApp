@@ -12,7 +12,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.SearchView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
@@ -22,19 +21,18 @@ import androidx.recyclerview.widget.RecyclerView
 import java.io.File
 
 class MainActivity : AppCompatActivity(), Pdffileinterface {
-    lateinit var button: Button
-    lateinit var searchView: SearchView
-    lateinit var rcview: RecyclerView
-    lateinit var pdffilenamelist: MutableList<PDFfile>
-    lateinit var datalistAdapter: pdfAdapter
-    lateinit var checkall: CheckBox
-    lateinit var gridshow: Button
-    lateinit var btnsend: Button
+    private lateinit var button: Button
+    private lateinit var searchView: SearchView
+    private lateinit var rcview: RecyclerView
+    private lateinit var pdffilenamelist: MutableList<PDFfile>
+    private lateinit var datalistAdapter: pdfAdapter
+    private lateinit var checkall: CheckBox
+    private lateinit var gridshow: Button
+    private lateinit var btnsend: Button
     private var isGridLayout = false
-    private var checkgrid: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.O)
-    @SuppressLint("SuspiciousIndentation")
+    @SuppressLint("SuspiciousIndentation", "NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -54,9 +52,9 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
 //        rcview.layoutManager = LinearLayoutManager(this)
         rcview.layoutManager = layoutManager
         rcview.adapter = datalistAdapter
-        checkall.setOnClickListener() {
+        checkall.setOnClickListener {
 
-            var a = datalistAdapter.newlist.size
+            datalistAdapter.newlist.size
             datalistAdapter.updateSelectAll(checkall.isChecked)
             datalistAdapter.dataList
         }
@@ -73,44 +71,36 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             datalistAdapter.notifyDataSetChanged()
         }
         //activity move end
-        button.setOnClickListener() {
+        button.setOnClickListener {
             Log.e(TAG, "onCreate: my selected data is ${datalistAdapter.dataList}")
             Log.e(TAG, "onCreate: ${datalistAdapter.dataList.size}")
-            var urilist = ArrayList<Uri>()
+            val urilist = ArrayList<Uri>()
             for (file in datalistAdapter.dataList) {
                 val uri = uriFromFile(file)
                 urilist.add(uri)
             }
-            if (urilist != null) {
-                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
-                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, urilist)
-                shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                shareIntent.type = "*/*"
-                startActivity(Intent.createChooser(shareIntent, "Share ..."))
-            } else {
-                Toast.makeText(this, "no data selected", Toast.LENGTH_SHORT).show()
-            }
+            val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
+            shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, urilist)
+            shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            shareIntent.type = "*/*"
+            startActivity(Intent.createChooser(shareIntent, "Share ..."))
         }
-        btnsend.setOnClickListener() {
+        btnsend.setOnClickListener {
             Log.e(TAG, "onCreate: list created and working")
-            var list = ArrayList<Uri>()
+            val list = ArrayList<Uri>()
             for (file in datalistAdapter.newlist) {
                 val uri = uriFromFile(file)
                 list.add(uri)
             }
-            Log.e(TAG, "onCreate: data added in list ")
-            if (list != null) {
-                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
-                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, list)
-                shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                shareIntent.type = "*/*"
-                startActivity(Intent.createChooser(shareIntent, "All file Share ..."))
-                Log.e(TAG, "onCreate: sharefile is $list")
-            } else {
-                Toast.makeText(this, "no data selected", Toast.LENGTH_SHORT).show()
-            }
+            Log.e(TAG, "onCreate: data added in list $list ")
+            val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
+            shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, list)
+            shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            shareIntent.type = "*/*"
+            startActivity(Intent.createChooser(shareIntent, "All file Share ..."))
+            Log.e(TAG, "onCreate: sharefile is $list")
         }
-
+        searchView.queryHint = "Search Pdf file"
 // searching
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -119,7 +109,7 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             }
 
             override fun onQueryTextChange(p0: String?): Boolean {
-                datalistAdapter.filter("${p0.orEmpty()}")
+                datalistAdapter.filter(p0.orEmpty())
                 return true
             }
         })
@@ -156,7 +146,7 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
         })
     }
 
-    fun uriFromFile(file: String): Uri {
+    private fun uriFromFile(file: String): Uri {
         return FileProvider.getUriForFile(
             this,
             BuildConfig.APPLICATION_ID + ".fileProvider",
