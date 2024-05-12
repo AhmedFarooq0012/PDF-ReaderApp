@@ -161,8 +161,7 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
         val pdfFiles = mutableListOf<PDFfile>()
         val projection = arrayOf(
             MediaStore.Files.FileColumns.DATA,
-            MediaStore.Files.FileColumns.MIME_TYPE,
-        )
+            MediaStore.Files.FileColumns.MIME_TYPE,)
         val selection = "${MediaStore.Files.FileColumns.MIME_TYPE}=?"
         val selectionArgs = arrayOf("application/pdf")
         val sortOrder = "${MediaStore.Files.FileColumns.DATA} ASC"

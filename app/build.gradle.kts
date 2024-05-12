@@ -6,7 +6,6 @@ plugins {
 android {
     namespace = "com.example.permission_pdf_name"
     compileSdk = 34
-
     defaultConfig {
         applicationId = "com.example.permission_pdf_name"
         minSdk = 24
