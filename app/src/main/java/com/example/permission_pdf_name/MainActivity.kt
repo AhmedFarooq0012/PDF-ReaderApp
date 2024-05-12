@@ -1,19 +1,23 @@
 package com.example.permission_pdf_name
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
-import android.provider.Settings
 import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.SearchView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView
 import java.io.File
 
 class MainActivity : AppCompatActivity(), Pdffileinterface {
+
     private lateinit var button: Button
     private lateinit var searchView: SearchView
     private lateinit var rcview: RecyclerView
@@ -32,33 +37,37 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
     private var isGridLayout = false
 
     @RequiresApi(Build.VERSION_CODES.O)
-    @SuppressLint("SuspiciousIndentation", "NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+        if (!hasStoragePermission()) {
+            requestStoragePermission()
+        } else {
+            initializeUI()
+        }
+    }
+
+    private fun initializeUI() {
         checkall = findViewById(R.id.checkall)
         searchView = findViewById(R.id.itemsearch)
         button = findViewById(R.id.topviewid)
         rcview = findViewById(R.id.recyclerview)
         btnsend = findViewById(R.id.sendall)
         gridshow = findViewById(R.id.searchid)
-
+        searchView.queryHint = "Search Pdf file"
         val layoutManager = LinearLayoutManager(this)
-//        rcview.layoutManager = layoutManager
         pdffilenamelist = getpdfname()
         datalistAdapter = pdfAdapter(pdffilenamelist, this)
-//        rcview.layoutManager = LinearLayoutManager(this)
         rcview.layoutManager = layoutManager
         rcview.adapter = datalistAdapter
+
         checkall.setOnClickListener {
 
             datalistAdapter.newlist.size
             datalistAdapter.updateSelectAll(checkall.isChecked)
             datalistAdapter.dataList
         }
-        // move one activity to another
         gridshow.setOnClickListener {
             isGridLayout = !isGridLayout
             val layoutManager = if (isGridLayout) {
@@ -70,7 +79,7 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             rcview.layoutManager = layoutManager
             datalistAdapter.notifyDataSetChanged()
         }
-        //activity move end
+
         button.setOnClickListener {
             Log.e(TAG, "onCreate: my selected data is ${datalistAdapter.dataList}")
             Log.e(TAG, "onCreate: ${datalistAdapter.dataList.size}")
@@ -85,6 +94,7 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             shareIntent.type = "*/*"
             startActivity(Intent.createChooser(shareIntent, "Share ..."))
         }
+
         btnsend.setOnClickListener {
             Log.e(TAG, "onCreate: list created and working")
             val list = ArrayList<Uri>()
@@ -100,8 +110,6 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             startActivity(Intent.createChooser(shareIntent, "All file Share ..."))
             Log.e(TAG, "onCreate: sharefile is $list")
         }
-        searchView.queryHint = "Search Pdf file"
-// searching
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(p0: String?): Boolean {
@@ -113,7 +121,40 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
                 return true
             }
         })
-        // searching end
+    }
+
+    private fun hasStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun requestStoragePermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            PERMISSION_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initializeUI()
+            } else {
+                finish()
+            }
+        }
     }
 
     private fun getpdfname(): MutableList<PDFfile> {
@@ -124,13 +165,13 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
         )
         val selection = "${MediaStore.Files.FileColumns.MIME_TYPE}=?"
         val selectionArgs = arrayOf("application/pdf")
-        val sortoder = "${MediaStore.Files.FileColumns.DATA} ASC"
+        val sortOrder = "${MediaStore.Files.FileColumns.DATA} ASC"
         contentResolver.query(
             MediaStore.Files.getContentUri("external"),
             projection,
             selection,
             selectionArgs,
-            sortoder
+            sortOrder
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val filename = cursor.getString(0)
@@ -152,5 +193,9 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             BuildConfig.APPLICATION_ID + ".fileProvider",
             File(file)
         )
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 100
     }
 }
