@@ -96,19 +96,21 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
         }
 
         btnsend.setOnClickListener {
+
             Log.e(TAG, "onCreate: list created and working")
+
             val list = ArrayList<Uri>()
-            for (file in datalistAdapter.newlist) {
+            for (file in datalistAdapter.dataList) {
                 val uri = uriFromFile(file)
                 list.add(uri)
             }
-            Log.e(TAG, "onCreate: data added in list $list ")
+            Log.e(TAG, "onCreate: data added in list______??? $list ")
             val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
             shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, list)
             shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
             shareIntent.type = "*/*"
-            startActivity(Intent.createChooser(shareIntent, "All file Share ..."))
-            Log.e(TAG, "onCreate: sharefile is $list")
+            startActivity(Intent.createChooser(shareIntent, "All file Share ...----???"))
+            Log.e(TAG, "onCreate: sharefile is----?? $list")
         }
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -192,7 +194,6 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             File(file)
         )
     }
-
     companion object {
         private const val PERMISSION_REQUEST_CODE = 100
     }

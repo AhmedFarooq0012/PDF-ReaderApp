@@ -70,7 +70,7 @@ class pdfAdapter(
     }
 
     var newlist: MutableList<String> = mutableListOf()
-    fun updateSelectAll(checked: Boolean = false) {
+    fun updateSelectAll(checked: Boolean = true) {
         for (pdf in names) {
             val obj = File(pdf.pdfname)
             if (checked) {
@@ -80,7 +80,6 @@ class pdfAdapter(
             } else {
                 pdf.check = false
                 newlist.clear()
-                notifyDataSetChanged()
                 Log.e(TAG, "updateSelectAll: dataremove $newlist.size")
             }
         }
