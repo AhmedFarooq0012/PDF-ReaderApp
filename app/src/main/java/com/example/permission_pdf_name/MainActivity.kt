@@ -124,7 +124,6 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
             }
         })
     }
-
     private fun hasStoragePermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Environment.isExternalStorageManager()
