@@ -179,7 +179,6 @@ class MainActivity : AppCompatActivity(), Pdffileinterface {
         }
         return pdfFiles
     }
-
     override fun oncellclick(pdf: PDFfile) {
         startActivity(Intent(this, pdfview::class.java).apply {
             putExtra("name", pdf.pdfname)
